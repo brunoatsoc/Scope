@@ -1,3 +1,7 @@
-BLOCO _principal_
-NUMERO a = 10, b = 20 
-CADEIA x
+BLOCO _inicio_
+	CADEIA var , x = "Hello"
+	PRINT x
+	PRINT var
+	var = "Ola"
+	PRINT var
+FIM _fim_
