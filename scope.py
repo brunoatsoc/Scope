@@ -3,6 +3,13 @@ import re
 import string
 import copy
 
+########## IMPORTANTE ##########
+# Para o código se lido corretamente precisamos saber de algumas coisas
+# Todos os comandos do seu programa devem estar separados por um espaço em branco
+# Por exemplo: NUMERO x = 10 , y = 20
+# Temos que separar os comandos com espaços para o algoritmo consseguir ler corretamente
+# Toda atribuição ou virgula deve estar separada por pelo menos um espaço em branco
+
 # Classe para a tabela onde guardaremos as informações das variaveis
 class Table:
     def __init__(self):
