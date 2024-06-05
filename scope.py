@@ -1,49 +1,68 @@
+# Import para as bibliotecas usadas no programa
 import re
 import string
 import copy
 
+# Classe para a tabela onde guardaremos as informações das variaveis
 class Table:
     def __init__(self):
         self.token = []
         self.lexema = []
         self.tipo = []
         self.valor = []
-    
+
+    # Adiciona uma linha na tabela
     def add_info(self, token, lexema, tipo, valor):
         self.token.append(token)
         self.lexema.append(lexema)
         self.tipo.append(tipo)
         self.valor.append(valor)
-    
+
+    # Procura uma variavel pelo seu nome em uma tabela especifica
     def search_variable(self, var):
         for i in range(len(self.lexema)):
             if var == self.lexema[i]:
                 return True, i
         return False, -2
 
+    # Retorna uma string com as informações do objeto
     def __str__(self):
         return f'Table(token={self.token}, lexema={self.lexema}, tipo={self.tipo}, valor={self.valor})'
+# Fim Classe Table
 
+# Metodo para ler o arquivo de entrada com o código fonte
+# Nele foi usado uma expressão regular do Python para ser possivel ler uma string
+# Pois usei o split para os espaços em branco
 def ler_arquivo(file_path):
     with open(file_path, 'r') as file:
         conteudo = file.read()
         
-    # Expressão regular para encontrar palavras e strings entre aspas
+    # Expressão regular para não separar uma CADEIA pelos espaços
     pattern = re.compile(r'\".*?\"|\S+')
     
-    # Encontrar todas as correspondências
+    # Encontra as conrrespondências para a expressão regular
     matches = pattern.findall(conteudo)
     
     return matches
+# Fim ler_arquivo
 
+# Metodo para um automato
+# Esse automato foi feito para reconhecer palavras inteiras da linguagem
+# Importante falar que não consgui fazer a contagem das linhas corretamente
+# Então as mensagens de erro são mostradas com a menssagem correta, porém não com a linha correta onde ele está
 def automata(code):
-    i = 0
-    state = "Q0"
-    stack = []
-    table = Table()
+    i = 0 # Contador
+    state = "Q0" # Estado inicial
+    stack = [] # Pilha
+    table = Table() # Tabela
+    line = 0 # Contador para as linhas
 
+    # Loop para iterar pelo automato
+    # Para cada iteração a variavel state recebe uma string para o proximo estado que deve entrar
+    # Cada if trata de uma palavra que no caso é code[i] onde estão os comandos da linguagem
     while i < len(code):
         if state == "Q0":
+            line += 1
             if code[i] == "BLOCO":
                 state = "Q1"
             elif code[i] == "FIM":
@@ -59,7 +78,7 @@ def automata(code):
                 if x[0] != -2:
                     state = "Q17"
                 else:
-                    print(f"Variavel {code[i]} não declarada.")
+                    print(f"Erro na linha {line}: Variavel '{code[i]}' não declarada.")
             i += 1
         elif state == "Q1":
             if is_tk_block(code[i]):
@@ -79,10 +98,17 @@ def automata(code):
             if is_identifier(code[i]):
                 x = stack[-1].search_variable(code[i])
                 if x[0]:
-                    print(f"Não é possivel redeclarar variavel {code[i]}.")
+                    print(f"Erro na linha {line}: Não é possivel redeclarar variavel '{code[i]}'.")
                     if code[i + 1] == ",":
                         state = "Q9"
                         i += 1
+                    elif code[i + 1] == "=":
+                        if code[i + 3] == ",":
+                            state = "Q9"
+                            i += 4
+                        else:
+                            state = "Q0"
+                            i += 3
                     else:
                         state = "Q0"
                         i += 1
@@ -104,10 +130,17 @@ def automata(code):
             if is_identifier(code[i]):
                 x = stack[-1].search_variable(code[i])
                 if x[0]:
-                    print(f"Não é possivel redeclarar variavel {code[i]}")
+                    print(f"Erro na linha {line}: Não é possivel redeclarar variavel '{code[i]}'.")
                     if code[i + 1] == ",":
                         state = "Q9"
-                        i +=1
+                        i += 2
+                    elif code[i + 1] == "=":
+                        if code[i + 3] == ",":
+                            state = "Q9"
+                            i += 4
+                        else:
+                            state = "Q0"
+                            i += 3
                     else:
                         state = "Q0"
                         i += 1
@@ -118,6 +151,14 @@ def automata(code):
             if is_string(code[i]):
                 state = "Q8"
                 i += 1
+            else:
+                print(f"Erro na linha {line}: Tipo da variavel '{code[i - 2]}' não é compativel com tipo '{code[i]}'")
+                if code[i + 1] == ",":
+                    state = "Q9"
+                    i += 2
+                else:
+                    state = "Q0"
+                    i += 1
         elif state == "Q8":
             stack[-1].add_info("tk_identificador", code[i - 3], "CADEIA", code[i - 1])
             if code[i] == ",":
@@ -129,10 +170,17 @@ def automata(code):
             if is_identifier(code[i]):
                 x = stack[-1].search_variable(code[i])
                 if x[0]:
-                    print(f"Não é possivel redeclarar variavel {code[i]}.")
+                    print(f"Erro na linha {line}: Não é possivel redeclarar variavel '{code[i]}'.")
                     if code[i + 1] == ",":
                         state = "Q14"
                         i += 1
+                    elif code[i + 1] == "=":
+                        if code[i + 3] == ",":
+                            state = "Q14"
+                            i += 4
+                        else:
+                            state = "Q0"
+                            i += 3
                     else:
                         state = "Q0"
                         i += 1
@@ -154,10 +202,17 @@ def automata(code):
             if is_identifier(code[i]):
                 x = stack[-1].search_variable(code[i])
                 if x[0]:
-                    print(f"Não é possivel redeclarar variavel {code[i]}")
+                    print(f"Erro na linha {line}: Não é possivel redeclarar variavel '{code[i]}'.")
                     if code[i + 1] == ",":
                         state = "Q14"
-                        i +=1
+                        i += 2
+                    elif code[i + 1] == "=":
+                        if code[i + 3] == ",":
+                            state = "Q14"
+                            i += 4
+                        else:
+                            state = "Q0"
+                            i += 3
                     else:
                         state = "Q0"
                         i += 1
@@ -168,6 +223,14 @@ def automata(code):
             if is_number(code[i]):
                 state = "Q13"
                 i += 1
+            else:
+                print(f"Erro na linha {line}: Tipo da variavel '{code[i - 2]}' não é compativel com tipo '{code[i]}'.")
+                if code[i + 1] == ",":
+                    state = "Q14"
+                    i += 2
+                else:
+                    state = "Q0"
+                    i += 1
         elif state == "Q13":
             stack[-1].add_info("tk_identificador", code[i - 3], "NUMERO", code[i - 1])
             if code[i] == ",":
@@ -183,7 +246,7 @@ def automata(code):
                     i += 1
                     state = "Q0"
                 else:
-                    print(f"Variavel {code[i]} não declarada.")
+                    print(f"Erro na linha {line}: Variavel '{code[i]}' não declarada.")
                     i += 1
                     state = "Q0"
         elif state == "Q17":
@@ -200,7 +263,7 @@ def automata(code):
                 state = "Q17"
                 i += 1
             else:
-                print(f"Variavel {code[i]} não declarada.")
+                print(f"Erro na linha {line}: Variavel '{code[i]}' não declarada.")
                 if code[i + 1] == ",":
                     state = "Q20"
                     i += 1
@@ -214,13 +277,18 @@ def automata(code):
                 state = "Q21"
                 i += 1
             elif is_identifier(code[i]):
-                if search_stack_table(stack, code[i]) != -2:
+                v = search_stack_table(stack, code[i])
+                if v[0] != -2 or v[0] != -2:
                     state = "Q22"
                     i += 1
                 else:
-                    print(f"Variavel {code[i]} não declarada.")
-                    state = "Q0"
-                    i += 1
+                    print(f"Erro na linha {line}: Variavel '{code[i]}' não declarada.")
+                    if code[i + 1] == ",":
+                        state = "Q20"
+                        i += 2
+                    else:
+                        state = "Q0"
+                        i += 1
         elif state == "Q19":
             x, y = search_stack_table(stack, code[i - 3])
             if stack[x].tipo[y] == "NUMERO":
@@ -231,7 +299,7 @@ def automata(code):
                 else:
                     state = "Q0"
             else:
-                print(f"Erro: Tipo da variavel '{stack[x].lexema[y]}' não é compativel com {code[i - 1]}.")
+                print(f"Erro na linha {line}: Tipo da variavel '{stack[x].lexema[y]}' não é compativel com tipo '{code[i - 1]}'.")
                 if code[i] == ",":
                     state = "Q20"
                     i += 1
@@ -247,15 +315,33 @@ def automata(code):
                 else:
                     state = "Q0"
             else:
-                print(f"Erro: Tipo da variavel '{stack[x].lexema[y]}' não é compativel com {code[i - 1]}.")
+                print(f"Erro na linha {line}: Tipo da variavel '{stack[x].lexema[y]}' não é compativel com tipo '{code[i - 1]}'.")
                 if code[i] == ",":
                     state = "Q20"
                     i += 1
                 else:
                     state = "Q0"
-        #elif state == "Q22":
+        elif state == "Q22":
+            x, y = search_stack_table(stack, code[i - 3])
+            z, w = search_stack_table(stack, code[i - 1])
 
+            if stack[x].tipo[y] == stack[z].tipo[w]:
+                stack[x].valor[y] = stack[z].valor[w]
+                if code[i] == ",":
+                    state = "Q20"
+                    i += 1
+                else:
+                    state = "Q0"
+            else:
+                print(f"Erro na linha {line}: Variavel '{stack[x].lexema[y]}' não é do mesmo tipo '{stack[z].lexema[w]}'.")
+                if code[i] == ",":
+                    state = "Q20"
+                    i += 1
+                else:
+                    state = "Q0"
+# Fim automato
 
+# Metodo para procurar uma variavel da tabela dentro da pilha
 def search_stack_table(stack, code):
     var = 0
     for i in range(len(stack) - 1, -1, -1):
@@ -265,46 +351,46 @@ def search_stack_table(stack, code):
             var = stack[i].valor[pos]
             return i, pos
     return -2, -2
+# Fim search_stack_table
 
+# Metodo para verificar se code é uma palavra valida para um bloco
 def is_tk_block(code):
     if code[0] == "_":
         return True
     else:
         False
+# Fim is_tk_block
 
+# Metodo para verificar se code é uma palavra valida para um identificador
 def is_identifier(code):
     characters = string.ascii_lowercase
 
-    if code[0] in characters:
+    if (code[0] in characters) and (code[0] != "\""):
         return True
     else:
         return False
+# Fim is_identifier
 
+# Metodo para verificar se code é uma string/CADEIA
 def is_string(code):
     if code[0] == "\"":
         return True
     else:
         return False
+# Fima is_string
 
+# Metodo para verificar se code é um NUMBER
 def is_number(code):
-    if is_string(code[0]):
+    characters = string.ascii_lowercase
+
+    if (code[0] in characters) or code[0] == "\"":
         return False
     else:
         return True
+# Fim is_number
 
+# Chama a função que vai fazer a leitura do arquivo do código fonte
 code = ler_arquivo("hello.cic")
-#print(code)
-automata(code)
 
-# stack = []
-# table = Table()
-# table.add_info("a", "b", "c", "d")
-# stack.append(copy.deepcopy(table))
-# print(stack[0])
-# table.lexema = []
-# table.token = []
-# table.tipo = []
-# table.valor = []
-# print(stack[0])
-# stack[0].lexema[0] = "Bruno"
-# print(stack[0])
+# Chama a função que vai vai rodar o codigo fonte no automato
+automata(code)
