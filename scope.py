@@ -4,7 +4,7 @@ import string
 import copy
 
 ########## IMPORTANTE ##########
-# Para o código se lido corretamente precisamos saber de algumas coisas
+# Para o código ser lido corretamente precisamos saber de algumas coisas
 # Todos os comandos do seu programa devem estar separados por um espaço em branco
 # Por exemplo: NUMERO x = 10 , y = 20
 # Temos que separar os comandos com espaços para o algoritmo consseguir ler corretamente
@@ -127,12 +127,12 @@ def automata(code):
                 state = "Q7"
                 i += 1
             elif code[i] == ",":
-                stack[-1].add_info("tk_identificador", code[i - 1], "CADEIA", "")
+                stack[-1].add_info("tk_identificador", code[i - 1], "CADEIA", "\"\"")
                 state = "Q9"
                 i += 1
             else:
                 state = "Q0"
-                stack[-1].add_info("tk_identificador", code[i - 1], "CADEIA", "")
+                stack[-1].add_info("tk_identificador", code[i - 1], "CADEIA", "\"\"")
         elif state == "Q9":
             if is_identifier(code[i]):
                 x = stack[-1].search_variable(code[i])
@@ -158,6 +158,17 @@ def automata(code):
             if is_string(code[i]):
                 state = "Q8"
                 i += 1
+            elif is_identifier(code[i]):
+                x, y = search_stack_table(stack, code[i])
+                if x != -2 and y != -2:
+                    state = "Q23"
+                    i += 1
+                else:
+                    if code[i + 1] == ",":
+                        state = "Q9"
+                        i += 1
+                    else:
+                        state = "Q0"
             else:
                 print(f"Erro na linha {line}: Tipo da variavel '{code[i - 2]}' não é compativel com tipo '{code[i]}'")
                 if code[i + 1] == ",":
@@ -211,7 +222,7 @@ def automata(code):
                 if x[0]:
                     print(f"Erro na linha {line}: Não é possivel redeclarar variavel '{code[i]}'.")
                     if code[i + 1] == ",":
-                        state = "Q14"
+                        state = "Q24"
                         i += 2
                     elif code[i + 1] == "=":
                         if code[i + 3] == ",":
@@ -230,6 +241,17 @@ def automata(code):
             if is_number(code[i]):
                 state = "Q13"
                 i += 1
+            elif is_identifier(code[i]):
+                x, y = search_stack_table(stack, code[i])
+                if x != -2 and y != -2:
+                    state = "Q24"
+                    i += 1
+                else:
+                    if code[i + 1] == ",":
+                        state = "Q9"
+                        i += 1
+                    else:
+                        state = "Q0"
             else:
                 print(f"Erro na linha {line}: Tipo da variavel '{code[i - 2]}' não é compativel com tipo '{code[i]}'.")
                 if code[i + 1] == ",":
@@ -343,6 +365,44 @@ def automata(code):
                 print(f"Erro na linha {line}: Variavel '{stack[x].lexema[y]}' não é do mesmo tipo '{stack[z].lexema[w]}'.")
                 if code[i] == ",":
                     state = "Q20"
+                    i += 1
+                else:
+                    state = "Q0"
+        elif state == "Q23":
+            stack[-1].add_info("tk_identificador", code[i - 3], "CADEIA", "")
+            x, y = search_stack_table(stack, code[i - 3])
+            z, w = search_stack_table(stack, code[i - 1])
+
+            if stack[x].tipo[y] == stack[z].tipo[w]:
+                stack[x].valor[y] = stack[z].valor[w]
+                if code[i] == ",":
+                    state = "Q9"
+                    i += 1
+                else:
+                    state = "Q0"
+            else:
+                print(f"Erro na linha {line}: Variavel '{stack[x].lexema[y]}' não é do mesmo tipo '{stack[z].lexema[w]}'.")
+                if code[i] == ",":
+                    state = "Q9"
+                    i += 1
+                else:
+                    state = "Q0"
+        elif state == "Q24":
+            stack[-1].add_info("tk_identificador", code[i - 3], "NUMERO", 0)
+            x, y = search_stack_table(stack, code[i - 3])
+            z, w = search_stack_table(stack, code[i - 1])
+
+            if stack[x].tipo[y] == stack[z].tipo[w]:
+                stack[x].valor[y] = stack[z].valor[w]
+                if code[i] == ",":
+                    state = "Q9"
+                    i += 1
+                else:
+                    state = "Q0"
+            else:
+                print(f"Erro na linha {line}: Variavel '{stack[x].lexema[y]}' não é do mesmo tipo '{stack[z].lexema[w]}'.")
+                if code[i] == ",":
+                    state = "Q9"
                     i += 1
                 else:
                     state = "Q0"
