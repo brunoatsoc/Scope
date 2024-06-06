@@ -1,0 +1,18 @@
+codigo_fonte
+estado <- {Q0, Q1, Q2, Q3, Q4, Q5, Q6, Q7, Q8, Q9, Q10, Q11, Q12, Q13, Q14, Q15, Q16, Q17, Q18, Q19, Q20, Q21, Q22, Q23, Q24}
+
+para cada estado faca
+	se passar por Q1 e Q2 faca
+		cria tabela vazia
+		adiciona tabela na pilha
+	senão se passar por Q3 e Q4
+		remove tabela da pilha
+	senão faca
+		se passar por Q5 e Q6 e Q7 ou Q8 ou Q23 ou Q9 faca
+			adiciona um ou varios IDs(CADEIA) na tabela do topo da pilha
+		se passar por Q10 e Q11 ou Q12 ou Q24 ou Q13 ou Q14
+			adiciona um ou varios IDs(NUMERO) na tabela do topo da pilha
+		senão se passar por Q15 e Q16 faca
+			imprime o valor do id
+		senão se passar por Q17 ou Q18 ou Q19 ou Q20 ou Q21 ou Q22 faca
+			atribui uma variavel1 a outra variavel2 do mesmo tipo uma ou varias vezes e atualiza a informação na tebala que está na pilha
